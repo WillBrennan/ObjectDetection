@@ -2,7 +2,12 @@
 This project lets you fine-tune Mask-RCNN on masks annotated using labelme, this allows you to train mask-rcnn on any categories you want to annotate! This project comes with several pretrained models trained on either custom datasets or on subsets of COCO.
 
 ## Getting Started
-This project uses conda to manage its enviroment; once conda is installed we create the enviroment and activate it, 
+The pretrained models are stored in the repo with git-lfs, when you clone make sure you've pulled the files by calling, 
+
+```bash
+git lfs pull
+```
+ or by downloading them from github directly. This project uses conda to manage its enviroment; once conda is installed we create the enviroment and activate it, 
 ```bash
 conda env create -f enviroment.yml
 conda activate object_detection
