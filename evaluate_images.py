@@ -37,11 +37,14 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     args = parse_args()
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logging.info(f'running inference on {device}')
+
     assert args.display or args.save
 
     logging.info(f'loading model from {args.model}')
-    model = MaskRCNN.load(torch.load(args.model))
-    model.cuda().eval()
+    model = MaskRCNN.load(torch.load(args.model, map_location=device))
+    model.to(device).eval()
 
     image_dir = pathlib.Path(args.images)
 
@@ -56,7 +59,7 @@ if __name__ == '__main__':
 
         with torch.no_grad():
             image = F.to_tensor(image)
-            image = image.cuda().unsqueeze(0)
+            image = image.to(device).unsqueeze(0)
 
             results = model(image)
             results = [fn_filter(i) for i in results]
