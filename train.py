@@ -1,6 +1,7 @@
 import argparse
 import logging
 
+import torch
 from torch import nn
 from torch import optim
 from torch.utils import data
@@ -40,6 +41,9 @@ if __name__ == '__main__':
     args = parse_args()
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
 
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logging.info(f'running training on {device}')
+
     logging.info('creating dataset and data loaders')
 
     # assert args.train != args.val
@@ -56,16 +60,16 @@ if __name__ == '__main__':
 
     logging.info(f'creating model and optimizer with initial lr of {args.initial_lr}')
     model = MaskRCNN(train_dataset.categories)
-    model = nn.DataParallel(model).cuda()
+    model = nn.DataParallel(model).to(device)
     optimizer = optim.RMSprop(params=[p for p in model.parameters() if p.requires_grad], lr=args.initial_lr)
 
     logging.info('creating trainer and evaluator engines')
-    trainer = create_mask_rcnn_trainer(model=model, optimizer=optimizer, device='cuda', non_blocking=True)
+    trainer = create_mask_rcnn_trainer(model=model, optimizer=optimizer, device=device, non_blocking=True)
     # note(will.brennan) - our evaluator just reports losses! we only want to see if its overfitting!
     evaluator = create_mask_rcnn_evaluator(
         model, metrics={
-            'losses': LossAverager(),
-        }, device='cuda', non_blocking=True
+            'losses': LossAverager(device=device),
+        }, device=device, non_blocking=True
     )
 
     logging.info(f'creating summary writer with tag {args.model_tag}')
